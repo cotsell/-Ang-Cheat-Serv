@@ -60,6 +60,8 @@ route.get('/get', (req, res) => {
 // 해당 id의 카테고리 전체 가져오기
 route.get('/:id/get', (req, res) => {
     let { id } = req.params;
+    console.log(`${id} 라는 카테고리 _id로 카테고리 요청이 들어왔어요.`);
+    
     Mongo.getCategory().getCategory(id)
         .then(value => { 
             console.log(value);

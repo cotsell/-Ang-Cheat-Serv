@@ -1,3 +1,5 @@
+// DB스키마와 인터페이스를 같은거로 혼동하지 맙시다요.
+
 export class UserInfo {
     id?: string;
     password?: string;
@@ -15,7 +17,7 @@ export class UserInfo {
 
 }
 
-export class DocumentInfo {
+export interface DocumentInfo {
     _id?: string;
     title?: string;
     text?: string;
@@ -23,12 +25,10 @@ export class DocumentInfo {
     modifiedTime?: Date;
     relatedDocuId?: string;
     thumbUp?: string[];
-    userId?: string;
+    userInfo?: UserInfo;
     tagList?: string[];
     libraryList?: Library[];
     historyId?: string;
-
-    constructor() {}
 }
 
 export interface Library {

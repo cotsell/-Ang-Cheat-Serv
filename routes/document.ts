@@ -6,7 +6,7 @@ import * as jwt from '../jwt';
 export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
 
-route.get('/:id', (req, res) => {
+route.get('/documentOne/:id', (req, res) => {
     let { id } = req.params;
     Mongo.getDocument().getDocumentOne(id)
         .then(value => {
@@ -106,4 +106,15 @@ route.post('/tag/remove', (req, res) => {
         res.json(value);
     })
     
+});
+
+// 특정 유저가 작성한 문서 리스트 검색.
+route.get('/userDocumentList', (req, res) => {
+    const userId = req.query['id'];
+    console.log(`${userId} 유저가 작성한 문서 리스트의 ID 리스트 요청.`);
+
+    Mongo.getDocument().searchUserDocumentIds(userId)
+    .then(value => {
+        res.json(value);
+    });
 });

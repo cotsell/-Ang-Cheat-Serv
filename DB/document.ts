@@ -1,6 +1,5 @@
 import * as mongoose from 'mongoose';
 import { Schema, Model, Document as MongDocument } from 'mongoose';
-import Account from './account';
 import { DocumentInfo, Result } from '../interface';
 
 export default class Document {
@@ -43,15 +42,22 @@ export default class Document {
     // 문서 한개를 검색.
     public async getDocumentOne(id: string) {
         let result = await this.model.findOne({ _id: id, deleted: false }, { deleted: false })
-            .catch(err => -1);
+        .catch(err => null);
 
-        if (result === -1 || result === null)
-            return { result: false, msg: '해당 문서가 없거나, 검색에 실패 했어요.' };
-        return { result: true, payload: result, msg: '검색 성공.'};
+        if (result === null)
+            return new Result(false, '해당 문서가 없거나, 검색에 실패했어요.');
+
+        return new Result(true, '검색 성공', 0, result);
     }
 
     public async getDocumens() {
         // TODO 만들어야 해요. 아마도.. 태그랑 검색어를 받아서 검색해야 할 듯 한데?
+    }
+
+    // 특정 유저가 작성한 문서들의 id만 리턴.
+    public async searchUserDocumentIds(userId: string) {
+        let findResult = await this.model.find({ userId: userId, deleted: false }, { _id: true });
+        return new Result(true, '검색 성공', 0, findResult);
     }
 
     // 문서 수정.
@@ -180,5 +186,42 @@ export default class Document {
             return value.toLocaleLowerCase() === tag.toLocaleLowerCase() ?
                 false : true;
         }
+    }
+
+    public async searchDocuments(lang: string, type: number, subj: string) {
+        const TYPE_SUBJECT = 0;
+        const TYPE_USER_ID = 1;
+        const TYPE_USER_NICKNAME = 2;
+        const TYPE_TAG = 3;
+
+        let condition = { tagList: lang.toLocaleLowerCase(), deleted: false };
+
+        switch (type) {
+            case TYPE_SUBJECT :
+                condition = Object.assign({}, condition, { title: { $regex: subj } });
+                break;
+            
+            case TYPE_USER_ID :
+                condition = Object.assign({}, condition, { userId: { $regex: subj } });
+                break;
+
+            case TYPE_TAG:
+                condition = Object.assign({}, condition, { tagList: subj });
+                break;
+
+            case TYPE_USER_NICKNAME :
+                // 일단 미 지원.
+                // 닉네임으로 유저를 검색해서, 해당 유저의 id를 알아내서 id로 검색을 해야 할 듯.
+                break;
+
+            default:
+                break;
+        }
+
+        const result = await this.model.find(condition, { deleted: false });
+        if (result.length < 1)
+            return new Result(false, '검색 결과가 없어요.');
+
+        return new Result(true, '검색 완료', 0, result);
     }
 }

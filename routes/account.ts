@@ -72,3 +72,12 @@ route.post('/user', (req, res) => {
             res.json(result);
         });
 });
+
+// 두명 이상의 유저 정보를 돌려줍니다. 사실 한명도 되긴 해요. 
+route.post('/users', (req, res) => {
+    const ids = req.body['ids'];
+    Mongo.getAccount().findUsers(ids)
+    .then(value => {
+        res.json(value);
+    });
+});

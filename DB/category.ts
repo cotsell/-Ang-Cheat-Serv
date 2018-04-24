@@ -115,8 +115,8 @@ export default class Category {
             { _id: true, title: true, tag: true, grade: true });
 
         if (result.length === 0)
-            return { result: false, msg: '카테고리가 하나도 없어요..' };
-        else
-            return { result: true, msg: '카테고리 가져오기 성공이에요.', payload: result };
+            return new Result(false, '카테고리가 하나도 없어요..');
+            
+        return new Result(true, '카테고리 가져오기 성공이에요.', 0, result);
     }
 }

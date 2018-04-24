@@ -40,6 +40,10 @@ export default class Account {
         return this.schema;
     }
 
+    public getModel(): Model<Document> {
+        return this.model;
+    }
+
     // DB에 해당 유저가 존재하는지 찾아보고, 없으면 삽입해요.
     public async insertNewUser(user: UserInfo): Promise<Result> {
         // 결과가 없으면 0, 있으면 1.
@@ -55,7 +59,7 @@ export default class Account {
             let doc: Document = new this.model({
                 id: user.id,
                 password: user.password,
-                grade: 3,
+                grade: 9,
                 nickName: user.nickName,
                 profileImgUrl: '',
                 myScrapIdList: [],
@@ -81,5 +85,21 @@ export default class Account {
     public async findUserOne(user: UserInfo): Promise<Document | null> {
         let result = await this.model.findOne({ id: user.id }, { _id: false, password: false });
         return result;
+    }
+
+    // 두명 이상의 유저 정보를 돌려줍니다. 사실 한명도 되긴 해요. 
+    public async findUsers(ids: string[]) {
+        let conditions: Object[] = [];
+        let condition = {};
+        ids.map(value => {
+            conditions.push({ id: value });
+        });
+        condition = Object.assign({}, { $or: [...conditions] });
+
+        const result = await this.model.find(condition, { _id: false, password: false });
+        if (result.length < 1)
+            return new Result(false, '검색 결과가 없어요.');
+
+        return new Result(true, '검색 성공', 0, result);
     }
 }
