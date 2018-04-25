@@ -194,7 +194,11 @@ export default class Document {
         const TYPE_USER_NICKNAME = 2;
         const TYPE_TAG = 3;
 
-        let condition = { tagList: lang.toLocaleLowerCase(), deleted: false };
+        let condition;
+        if (lang === 'category-all') 
+            condition = { deleted: false };
+        else 
+            condition = { tagList: lang.toLocaleLowerCase(), deleted: false };
 
         switch (type) {
             case TYPE_SUBJECT :

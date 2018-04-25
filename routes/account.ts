@@ -4,6 +4,7 @@ import * as jwt from '../jwt';
 import { Result } from '../interface';
 
 export const route = express.Router();
+const ACCESS_TOKEN_ERROR = 1;
 
 // AccessToken으로 로그인 처리.
 route.get('/check', (req, res) => {
@@ -17,7 +18,7 @@ route.get('/check', (req, res) => {
 // 가입처리.
 route.post('/signup', (req, res) => {
     console.log(`${ req.body.id } 라는 id로 가입신청을 시도합니다.\n`);
-    
+
     Mongo.getAccount().insertNewUser(req.body)
         .then(value => {
             // console.log(value);
@@ -43,11 +44,11 @@ route.post('/login', (req, res) => {
     let { id, password } = req.body;
     console.log(`${ id } 유저가 로그인을 시도합니다.\n`);
 
-    Mongo.getAccount().countUser(req.body)
+    Mongo.getAccount().checkIdAndPassword(req.body)
         .then(value => {
             if (value === 1) {
                 let accessToken = jwt.createJwt({ userId: id });
-                res.json(new Result(true, '', 0, { accessToken: accessToken }));
+                res.json(new Result(true, '로그인 완료.', 0, { accessToken: accessToken }));
             } else {
                 res.json(new Result(false, 'ID혹은 비밀번호가 틀렸어요.'));
             }
@@ -79,5 +80,54 @@ route.post('/users', (req, res) => {
     Mongo.getAccount().findUsers(ids)
     .then(value => {
         res.json(value);
+    });
+});
+
+route.post('/user/changePassword', (req, res) => {
+    const accessToken = req.headers['c-access-token'] + '';
+    const oldPass = req.body['oldPass'] + '';
+    const newPass = req.body['newPass'] + '';
+
+    if (!jwt.verify(accessToken))
+        return new Result(false, '엑세스토큰에 이상이 있어요.', ACCESS_TOKEN_ERROR);
+
+    if (oldPass === undefined || oldPass === null || oldPass === '' ||
+        newPass === undefined || newPass === null || newPass === '')
+        return new Result(false, '잘못된 유형의 비밀번호에요.');
+
+    const userId = JSON.parse(JSON.stringify(jwt.decode(accessToken)))['userId'];
+
+    console.log(`${userId} 유저의 패스워드 변경 요청이 들어왔어요.`);
+
+    Mongo.getAccount().changePassword(userId, oldPass, newPass)
+    .then(value => {
+        console.log(`${userId} 유저의 패스워드 변경 요청 결과에요.`);
+        console.log(value.msg);
+        console.log(value.payload);
+        
+        res.json(value);
+    });
+});
+
+route.post('/user/checkPassword', (req, res) => {
+    const accessToken = req.headers['c-access-token'] + '';
+    const pass = req.body['password'] + '';
+
+    if (!jwt.verify(accessToken))
+        return new Result(false, '엑세스토큰에 이상이 있어요.', ACCESS_TOKEN_ERROR);
+
+    if (pass === undefined || pass === null || pass === '')
+        return new Result(false, '잘못된 유형의 비밀번호에요.');
+
+    const userId = JSON.parse(JSON.stringify(jwt.decode(accessToken)))['userId'];
+
+    console.log(`${userId} 유저의 패스워드 확인 요청이 들어왔어요.`);
+
+    Mongo.getAccount().checkIdAndPassword({ id: userId, password: pass })
+    .then(value => {
+        if (value === 1)
+            res.json(new Result(true, '확인 완료.'));
+        else 
+            res.json(new Result(false, '틀린 비밀번호에요.'));
     });
 });
