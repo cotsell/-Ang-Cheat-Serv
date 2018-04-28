@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as Mongo from '../DB/Mongo';
 import * as jwt from '../jwt';
-import { Result } from '../interface';
+import { Result, UserInfo } from '../interface';
 
 export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
@@ -130,4 +130,33 @@ route.post('/user/checkPassword', (req, res) => {
         else 
             res.json(new Result(false, '틀린 비밀번호에요.'));
     });
+});
+
+route.post('/user/update', (req, res) => {
+    const accessToken = req.headers['c-access-token'] + '';
+    const userInfo: UserInfo = req.body;
+
+    if (!jwt.verify(accessToken))
+        return new Result(false, '엑세스토큰에 이상이 있어요.', ACCESS_TOKEN_ERROR);
+
+    const userId = JSON.parse(JSON.stringify(jwt.decode(accessToken)))['userId'];
+    
+    if (hasNickNameError(userInfo.nickName)) 
+        return new Result(false, '닉네임 유형이 잘못되었어요.');
+
+    Mongo.getAccount().updateUserInfo(userId, userInfo)
+        .then(result => {
+            res.json(result);
+        });
+
+    // ---- 정리용도 함수 모음 ----
+
+    // 닉네임 에러 체크함수에요. 문제가 있으면 true를 리턴해요.
+    // 따로 만든 이유는 에러 체크할 사항이 늘어나게 되면 복잡하니까..
+    function hasNickNameError(nickName: string | undefined): boolean {
+        if (userInfo.nickName === undefined || userInfo.nickName === '')
+            return true;
+        else
+            return false;
+    }
 });

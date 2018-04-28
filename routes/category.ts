@@ -67,5 +67,13 @@ route.get('/:id/get', (req, res) => {
             console.log(value);
             res.json(value);
          });
-    
+});
+
+// 모든 카테고리 가져오기.
+route.get('/all', (req, res) => {
+    console.log(`모든 카테고리 가져오기 요청이 들어왔어요.`);
+    Mongo.getCategory().getAllCategory()
+        .then(value => {
+            res.json(value);
+        });
 });

@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 import { Schema, Model, Document } from 'mongoose';
 import { Result, Category as iCategory } from '../interface';
+import { Util } from './Mongo';
 
 export default class Category {
     private schema: Schema;
@@ -48,7 +49,7 @@ export default class Category {
             return { result: false, msg: '이미 존재하는 카테고리에요.' };
         } else {
             delete category._id; // update를 통해 새로운 글을 작성할 경우에는 _id가 필요 없어요.
-            
+
             let doc = new this.model(category);
             let result = await doc.save();
             return { result: true, payload: result, msg: '새로운 카테고리 생성 완료.' };
@@ -107,7 +108,7 @@ export default class Category {
     }
 
     public async getAllGrade1Categorys() {
-        console.log('모든 카테고리 가져오기 시작\n');
+        console.log('모든 카테고리 1Grade 가져오기 시작\n');
 
         let msg: string;
         let result = await this.model.find(
@@ -116,7 +117,34 @@ export default class Category {
 
         if (result.length === 0)
             return new Result(false, '카테고리가 하나도 없어요..');
-            
+
         return new Result(true, '카테고리 가져오기 성공이에요.', 0, result);
+    }
+
+    // 모든 카테고리 가져오기
+    public async getAllCategory() {
+        console.log('모든 카테고리 가져오기 시작\n');
+
+        const result: null | any[] = await this.model.find(
+            { deleted: false },
+            { deleted: false })
+            .catch(err => {
+                console.log(err);
+                return null;
+            });
+
+        if (result === null)
+            return new Result(false, '검색 실패했어요.');
+
+        if (typeof result === 'object') {
+            const array = [...result];
+
+            if (array.length < 1)
+                return new Result(false, '검색 결과가 없어요.');
+
+            return new Result(true, '검색 성공.', 0, array);
+        }
+        
+        return new Result(false, '알 수 없는 오류에요.');
     }
 }

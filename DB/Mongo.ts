@@ -27,3 +27,9 @@ export function getDocument() {
 export function getCategory(): Category {
     return category;
 }
+
+export class Util {
+    static parse(obj: any) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+}

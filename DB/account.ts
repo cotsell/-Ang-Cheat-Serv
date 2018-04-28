@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { Document, Model, Schema } from 'mongoose';
 import { UserInfo, Result } from '../interface';
 import * as conf from '../sysConf';
+import {Util} from './Mongo';
 
 interface accountDocument extends Document {
     id?: string;
@@ -146,5 +147,19 @@ export default class Account {
             return new Result(false, '변경 실패.');
 
         return new Result(true, '변경 완료.', 0, result);
+    }
+
+    public async updateUserInfo(userId: string, userInfo: UserInfo){
+        const updateResult = await this.model.updateOne({ id: userId }, { $set: userInfo }).catch(err => { 
+            console.error(err);
+            return null;
+            }
+        );
+
+        if (Util.parse(updateResult)['nModified'] === 1)
+            return new Result(true, '변경 완료', 0, updateResult);
+        
+        return new Result(false, '변경 실패.');
+
     }
 }
