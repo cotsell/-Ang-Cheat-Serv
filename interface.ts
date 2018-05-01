@@ -72,6 +72,19 @@ export interface Category extends CategoryGrade2 {
 }
 // ---- 카테고리 인터페이스 ----
 
+export interface Reply {
+    _id?: string;
+    historyId: string;
+    parentId: string;
+    text: string;
+    userId: string;
+    createdTime?: Date;
+    updatedTime?: Date;
+    deleted?: boolean;
+    updated?: boolean;
+    rereply?: Reply[];
+}
+
 export interface Result {
     result: boolean;
     msg?: string;

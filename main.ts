@@ -4,6 +4,7 @@ import { route as Route } from './routes/root';
 import { route as accountRoute } from './routes/account';
 import { route as documentRoute } from './routes/document';
 import { route as categoryRoute } from './routes/category';
+import { route as replyRoute } from './routes/reply';
 import * as mongo from './DB/Mongo';
 import * as conf from './sysConf';
 
@@ -27,6 +28,7 @@ app.use('/', Route);
 app.use('/account', accountRoute);
 app.use('/document', documentRoute);
 app.use('/category', categoryRoute);
+app.use('/reply', replyRoute);
 
 const httpServer = app.listen(8010, '', () => {
     console.log(`port: ${ httpServer.address().port }`);

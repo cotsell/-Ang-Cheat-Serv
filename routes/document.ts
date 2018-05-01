@@ -6,6 +6,7 @@ import * as jwt from '../jwt';
 export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
 
+// 문서 한개를 조회해줘요.
 route.get('/documentOne/:id', (req, res) => {
     let { id } = req.params;
     Mongo.getDocument().getDocumentOne(id)
@@ -16,6 +17,7 @@ route.get('/documentOne/:id', (req, res) => {
         });
 });
 
+// 문서 만들기.
 route.post('/new', (req, res) => {
     console.log('새로운 문서 작성 요청이 들어왔어요.');
     const accessToken = req.headers['c-access-token'] + '';
@@ -34,6 +36,7 @@ route.post('/new', (req, res) => {
         });
 });
 
+// 문서 수정.
 route.post('/modify', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
     const doc: DocumentInfo = req.body;
@@ -52,6 +55,7 @@ route.post('/modify', (req, res) => {
     });
 });
 
+// 문서 삭제.
 route.post('/remove', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
     const doc: DocumentInfo = req.body;

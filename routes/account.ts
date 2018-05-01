@@ -83,6 +83,7 @@ route.post('/users', (req, res) => {
     });
 });
 
+// 회원의 비밀번호를 변경합니다. 
 route.post('/user/changePassword', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
     const oldPass = req.body['oldPass'] + '';
@@ -109,6 +110,7 @@ route.post('/user/changePassword', (req, res) => {
     });
 });
 
+// 회원의 비밀번호가 맞는지 확인해줍니다.
 route.post('/user/checkPassword', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
     const pass = req.body['password'] + '';
@@ -132,6 +134,7 @@ route.post('/user/checkPassword', (req, res) => {
     });
 });
 
+// 회원 정보 변경해줘요.
 route.post('/user/update', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
     const userInfo: UserInfo = req.body;

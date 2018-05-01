@@ -2,10 +2,12 @@ import * as mongoose from 'mongoose';
 import Account from './account';
 import Document from './document';
 import Category from './category';
+import Reply from './reply';
 
 let account = new Account();
 let document = new Document();
 let category = new Category();
+const reply = new Reply();
 
 mongoose.connection.on('error', console.error);
 mongoose.connection.once('open', () => { 
@@ -26,6 +28,10 @@ export function getDocument() {
 
 export function getCategory(): Category {
     return category;
+}
+
+export function getReply(): Reply {
+    return reply;
 }
 
 export class Util {
