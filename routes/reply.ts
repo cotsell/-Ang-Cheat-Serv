@@ -24,11 +24,11 @@ route.post('/', (req, res) => {
     const reply: Reply = req.body;
 
     if (!replyStateChecking(reply))
-        return new Result(false, '필수 입력 항목에 문제가 있어요.');
+        res.json(new Result(false, '필수 입력 항목에 문제가 있어요.'));
 
 
     if (!jwt.verify(accessToken))
-        return new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR);
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
 
     Mongo.getReply().makeReply(reply)
         .then(result => {
@@ -55,10 +55,10 @@ route.post('/rereply', (req, res) => {
     const rereply: Reply = req.body;
 
     if (!replyStateChecking(rereply))
-        return new Result(false, '필수 입력 항목에 문제가 있어요.');
+        res.json(new Result(false, '필수 입력 항목에 문제가 있어요.'));
 
     if (!jwt.verify(accessToken))
-        return new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR);
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
 
     Mongo.getReply().insertRereply(rereply)
         .then(value => {
@@ -78,9 +78,47 @@ route.post('/rereply', (req, res) => {
     // ---- 정리용도 함수 모음 끝 -------------------------------
 });
 
-// TODO
+// 리플 수정.
 route.post('/update', (req, res) => {
+    const accessToken = req.headers['c-access-token'] + '';
+    const reply: Reply = req.body;
 
+    if (!jwt.verify(accessToken))
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
+
+    const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'];
+
+    if (reply.userId !== userId)
+        res.json(new Result(false, '해당 리플 작성자가 아니에요.'));
+
+    console.log(`${userId} 유저로부터 ${reply._id} 리플의 수정 요청이 들어왔어요.`);
+
+    Mongo.getReply().updateReply(userId, reply)
+        .then(result => {
+            res.json(result);
+        });
+});
+
+// 리리플 수정하기.
+route.post('/rereply/update', (req, res) => {
+    const accessToken = req.headers['c-access-token'] + '';
+    const rereply = req.body;
+
+    if (!jwt.verify(accessToken))
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
+
+    const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'];
+
+    if (rereply.userId !== userId)
+        res.json(new Result(false, '해당 리플 작성자가 아니에요.'));
+
+    console.log(`${userId} 유저로부터 ${rereply._id} 리리플의 수정 요청이 들어왔어요.`);
+    console.log(rereply);
+
+    Mongo.getReply().updateRereply(userId, rereply)
+        .then(result => {
+            res.json(result);
+        });
 });
 
 // 리플을 삭제해요. 삭제하고, 새로 생성된 (삭제처리)된 리플을 돌려줘요.
@@ -89,7 +127,7 @@ route.get('/remove/:id', (req, res) => {
     const id = req.params['id'] + '';
 
     if (!jwt.verify(accessToken))
-        return new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR);
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
 
     const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'];
 
@@ -105,12 +143,12 @@ route.post('/rereply/remove', (req, res) => {
     const rereply: Reply = req.body;
 
     if (!jwt.verify(accessToken))
-        return new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR);
+        res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
 
     const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'];
 
     if (rereply.userId !== userId)
-        return new Result(false, '해당 리플을 작성한 사용자가 아니에요. 누구세요!?');
+        res.json(new Result(false, '해당 리플을 작성한 사용자가 아니에요. 누구세요!?'));
 
     Mongo.getReply().removeRereply(userId, rereply)
         .then(value => {
