@@ -29,7 +29,7 @@ export default class Account {
             nickName: { type: String, unique: true },
             profileImgUrl: { type: String },
             // myDocumentIdList: { type: [String] },
-            myScrapIdList: { type: [String] },
+            // myScrapIdList: { type: [String] },
             totalThumbUp: { type: Number },
             signature: { type: String },
             createdTime: { type: Date, default: Date.now },
@@ -78,7 +78,7 @@ export default class Account {
                 grade: 9,
                 nickName: user.nickName,
                 profileImgUrl: '',
-                myScrapIdList: [],
+                // myScrapIdList: [],
                 totalThumbUp: 0,
                 signature: '',
             });

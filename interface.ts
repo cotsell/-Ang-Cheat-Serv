@@ -7,7 +7,7 @@ export class UserInfo {
     nickName?: string;
     profileImgUrl?: string;
     // myDocumentIdList?: string[];
-    myScrapIdList?: string[];
+    // myScrapIdList?: string[];
     totalThumbUp?: number;
     signature?: string;
     createdTime?: Date;
