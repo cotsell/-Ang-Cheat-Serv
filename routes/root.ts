@@ -48,23 +48,6 @@ route.post('/scrap', (req, res) => {
         .then(result => {
             res.json(result);
         });
-
-
-    // const accessToken = req.headers['c-access-token'] + '';
-    // const documentId = req.body['documentId'] + '';
-
-    // if (hasError(accessToken, documentId))
-    //     res.json(new Result(false, '필수 요소를 정확히 입력 해주세요.'));
-
-    // if (!jwt.verify(accessToken))
-    //     res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
-
-    // const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'] + '';
-
-    // Mongo.getScrap().setScrap(userId, documentId)
-    //     .then(result => {
-    //         res.json(result);
-    //     });
 });
 
 // 스크랩 가져오기.
