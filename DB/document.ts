@@ -18,7 +18,7 @@ export default class Document {
             title: { type: String },
             text: { type: String },
             relatedDocuId: { type: String },
-            thumbUp: { type: [String] },
+            // thumbUp: { type: [String] },
             userId: String,
             tagList: [String],
             libraryList: [library],

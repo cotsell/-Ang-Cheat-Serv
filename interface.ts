@@ -24,7 +24,7 @@ export interface DocumentInfo {
     createdTime?: Date;
     modifiedTime?: Date;
     relatedDocuId?: string;
-    thumbUp?: string[];
+    // thumbUp?: string[];
     userInfo?: UserInfo;
     tagList?: string[];
     libraryList?: Library[];
