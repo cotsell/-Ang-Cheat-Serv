@@ -1,1 +1,1 @@
-"C:\Program Files\MongoDB\Server\3.4\bin\mongo.exe" --host=mongodb://localhost:27018 -u user -p dbwjdpdy --authenticationDatabase cheat
+"C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe" --host=mongodb://localhost:27018 -u user -p dbwjdpdy --authenticationDatabase cheat

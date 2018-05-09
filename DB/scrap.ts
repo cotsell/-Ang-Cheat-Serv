@@ -180,21 +180,98 @@ export default class Scrap {
         }
     }
 
-    // 스크랩 가져오기
-    public async getScrap(userId: string) {
-        const result: any = await this.model.findOne(
-            { userId: userId },
-            { _id: false, labelList: true, docuList: true }
-        )
-            .catch(err => { console.error(err); return -1; });
+  // 스크랩 가져오기
+  public async getScrap(userId: string) {
+    const result: any = await this.model.findOne(
+      { userId: userId },
+      { _id: false, labelList: true, docuList: true }
+    )
+      .catch(err => { console.error(err); return -1; });
 
-        if (result === -1)
-            return new Result(false, '스크랩 검색에 실패했어요..');
+    if (result === -1)
+      return new Result(false, '스크랩 검색에 실패했어요..');
 
-        if (result === null)
-            return new Result(false, '해당 스크랩 리스트가 없어요..');
+    if (result === null)
+      return new Result(false, '해당 스크랩 리스트가 없어요..');
 
-        return new Result(true, '스크랩 가져오기 성공.', 0, result);
-    }
+    return new Result(true, '스크랩 가져오기 성공.', 0, result);
+  }
+
+  // 라벨을 삭제해요. 라벨을 달고 있는 스크랩도 삭제돼요.
+  public async removeLabel(userId: string, label: string) {
+    let contain: any = await this.model.findOneAndUpdate(
+      { userId: userId }, 
+      { $pull: { labelList: label, docuList: { label: label } } },
+      { new: true })
+      .catch(err => { console.error(err); return null; });
+
+    if (contain === null)
+      return new Result(false, '라벨을 삭제하는 도중에 문제가 발생했어요.');
+
+    return new Result(true, '라벨과 라벨과 과련된 스크랩을 모두 삭제완료 했어요.', 0, contain);
+
+    // TODO 충분한 테스트 후에 아래 주석은 삭제 해주세요.
+    // contain = await this.model.findOne({ userId: userId })
+    //   .catch(err => { console.error(err); return null; });
+
+    // if (contain === null)
+    //   return new Result(false, '라벨과 관련된 스크랩들을 검색하는 도중에 에러가 발생했어요.');
+
+    // // docuList가 비어있다면, 어차피 삭제할 필요가 없으니까 성공한거로 인정.
+    // if (contain.docuList === undefined || contain.docuList.length < 1) 
+    //   return new Result(true, '라벨을 삭제완료 했어요.', 0, contain);
+
+    // const docuList = contain.docuList.filter((filt: any) => {
+    //   return filt.label === label ? false : true;
+    // });
+
+    // const result: any = await this.model.findOneAndUpdate(
+    //   { userId: userId },
+    //   { $set: { docuList: docuList }},
+    //   { new: true })
+    //   .catch(err => { console.error(err); return null; });
+
+    // if (result === null)
+    //   return new Result(false, '라벨에 해당하는 스크랩을 삭제하는 도중에 문제가 발생했어요.');
+
+    // return new Result(true, '라벨과 라벨과 과련된 스크랩을 모두 삭제완료 했어요.', 0, result);
+  }
+
+  // 스크랩을 삭제해요.
+  public async removeArticle(userId: string, label: string, docuId: string) {
+    // TODO 아래 주석처리한 코드 충분한 테스트 이후 잘 동작하면 지워주세요.
+    // const contain: any = await this.model.findOne({ userId: userId })
+    //   .catch(err => { console.error(err); return -1; });
+
+    // if (contain === -1)
+    //   return new Result(false, '해당 스크랩이 없거나, 검색 중 문제가 발생했어요.');
+
+    // if (contain === null)
+    //   return new Result(false, '아무런 문서도 없었어요.');
+
+    // if (contain.docuList === undefined || contain.docuList.length < 1)
+    //   return new Result(false, '항목이 비어 있어요.');
+
+    // const docuList = contain.docuList.filter((filt: any) => {
+    //   return filt.label === label && filt.docuId === docuId ? false : true;
+    // });
+
+    // const result: any = await this.model.findOneAndUpdate(
+    //   { userId: userId },
+    //   { $set: { docuList: docuList }},
+    //   { new: true })
+    //   .catch(err => { console.error(err); return null; });
+      
+    const result: any = await this.model.findOneAndUpdate(
+      { userId: userId},
+      { $pull: { docuList: { label: label, docuId: docuId } }},
+      { new: true })
+      .catch(err => { console.error(err); return null; });
+      
+    if (result === null)
+      return new Result(false, '스크랩을 삭제하는 과정에 문제가 발생했어요.');
+
+    return new Result(true, '스크랩 삭제 완료.', 0, result);
+  }
 
 }

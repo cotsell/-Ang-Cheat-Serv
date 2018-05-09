@@ -65,6 +65,29 @@ route.get('/scrap/get', (req, res) => {
         });
 });
 
+route.post('/scrap/remove', (req, res) => {
+  const accessToken = req.headers['c-access-token'] + '';
+  const article = req.body;
+
+  if (article === undefined || article.label === undefined)
+      res.json(new Result(false, '필수 항목이 비어있어요.'));
+
+  if (!jwt.verify(accessToken))
+    res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
+
+  const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'] + '';
+
+  let promise;
+  if (article.docuId === undefined) 
+    promise = Mongo.getScrap().removeLabel(userId, article.label);
+  else
+    promise = Mongo.getScrap().removeArticle(userId, article.label, article.docuId);
+  
+  promise.then(result => {
+    res.json(result);
+  });
+});
+
 // 엄지척 하기.
 route.get('/thumbup/:docuId', (req, res) => {
     const accessToken = req.headers['c-access-token'] + '';
