@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 import { Schema, Model, Document as MongDocument } from 'mongoose';
 import { DocumentInfo, Result } from '../interface';
+import * as uuid from 'uuid/v1';
 
 export default class Document {
     private schema: Schema;
@@ -22,7 +23,7 @@ export default class Document {
             userId: String,
             tagList: [String],
             libraryList: [library],
-            historyId: { type: String, default: '' },
+            historyId: { type: String, default: uuid },
             createdTime: { type: Date, default: Date.now },
             modifiedTime: { type: Date, default: Date.now },
             deleted: { type: Boolean, default: false }
@@ -40,8 +41,10 @@ export default class Document {
     }
 
     // 문서 한개를 검색.
-    public async getDocumentOne(id: string) {
-        let result = await this.model.findOne({ _id: id, deleted: false }, { deleted: false })
+    public async getDocumentOne(docHistoryId: string) {
+        let result = await this.model.findOne(
+          { historyId: docHistoryId, deleted: false },
+          { deleted: false })
         .catch(err => null);
 
         if (result === null)
@@ -60,46 +63,44 @@ export default class Document {
         return new Result(true, '검색 성공', 0, findResult);
     }
 
-    // 문서 수정.
-    public async modifyDocument(document: DocumentInfo, userId: string) {
-        let findResult = await this.model.findOne({ _id: document._id, deleted: false })
-        .catch(err => null);
+  // 문서 수정.
+  public async modifyDocument(document: DocumentInfo, userId: string) {
+    let findResult = await this.model.findOne({ _id: document._id, deleted: false })
+      .catch(err => null);
 
-        if (findResult === null)
-            return new Result(false, '해당 문서가 존재하지 않아요.');
-        
-        if (JSON.parse(JSON.stringify(findResult))['userId'] !== userId)
-            return new Result(false, '해당 사용자는 문서 작성자가 아니에요.');
+    if (findResult === null)
+      return new Result(false, '해당 문서가 존재하지 않아요.');
 
-        let updateResult = await this.model.updateOne(
-            { _id: document._id }, { $set: { deleted: true } })
-        .catch(err => null);
+    if (JSON.parse(JSON.stringify(findResult))['userId'] !== userId)
+      return new Result(false, '해당 사용자는 문서 작성자가 아니에요.');
 
-        console.log('After Running updateOne function, the result is ');
-        console.log(updateResult);
-        if (updateResult === null || updateResult < 1)
-            return new Result(false, '문서 정보 업데이트에 실패 했어요.');
+    let updateResult = await this.model.updateOne(
+      { _id: document._id }, { $set: { deleted: true } })
+      .catch(err => null);
 
-        // 문서 수정이니까 히스토리 아이디를 채워 넣어 줍시다.
-        if (document.historyId === undefined ||
-            document.historyId === null ||
-            document.historyId === '') {
-            document.historyId = document._id;
-        }
+    console.log('After Running updateOne function, the result is ');
+    console.log(updateResult);
+    if (updateResult === null || updateResult < 1)
+      return new Result(false, '문서 정보 업데이트에 실패 했어요.');
 
-        delete document._id; // 새로운 문서로 입력하기 위해서 _id는 삭제.
-        return await this.insertNewDocument(document).then(checkInsertResult);
+    // 문서 수정이니까 히스토리 아이디를 채워 넣어 줍시다.
+    // if (document.historyId === undefined ||
+    //     document.historyId === null ||
+    //     document.historyId === '') {
+    //     document.historyId = document._id;
+    // }
 
+    delete document._id; // 새로운 문서로 입력하기 위해서 _id는 삭제.
+    return await this.insertNewDocument(document).then(checkInsertResult);
 
-        // ---- 정리용도 함수 모음집 ----
-        function checkInsertResult(value: Result) {
-            if (value.result === true)
-                return new Result(true, '문서 업데이트에 성공했어요.', 0, value.payload);
-            else
-                return new Result(false, value.msg);
-        }
-
+    // ---- 정리용도 함수 모음집 ----
+    function checkInsertResult(value: Result) {
+      if (value.result === true)
+        return new Result(true, '문서 업데이트에 성공했어요.', 0, value.payload);
+      else
+        return new Result(false, value.msg);
     }
+  }
 
     public async removeDocument(document: DocumentInfo, userId: string) {
         let findResult = await this.model.findOne({ _id: document._id, deleted: false })
@@ -195,16 +196,16 @@ export default class Document {
         const TYPE_TAG = 3;
 
         let condition;
-        if (lang === 'category-all') 
+        if (lang === 'category-all')
             condition = { deleted: false };
-        else 
+        else
             condition = { tagList: lang.toLocaleLowerCase(), deleted: false };
 
         switch (type) {
             case TYPE_SUBJECT :
                 condition = Object.assign({}, condition, { title: { $regex: subj } });
                 break;
-            
+
             case TYPE_USER_ID :
                 condition = Object.assign({}, condition, { userId: { $regex: subj } });
                 break;

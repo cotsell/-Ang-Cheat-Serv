@@ -7,9 +7,9 @@ export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
 
 // 문서 한개를 조회해줘요.
-route.get('/documentOne/:id', (req, res) => {
-    let { id } = req.params;
-    Mongo.getDocument().getDocumentOne(id)
+route.get('/documentOne/:docHistoryId', (req, res) => {
+    let { docHistoryId } = req.params;
+    Mongo.getDocument().getDocumentOne(docHistoryId)
         .then(value => {
             console.log(value);
             console.log();
