@@ -19,14 +19,16 @@ export default class Document {
             title: { type: String },
             text: { type: String },
             relatedDocuId: { type: String },
-            // thumbUp: { type: [String] },
             userId: String,
             tagList: [String],
             libraryList: [library],
             historyId: { type: String, default: uuid },
             createdTime: { type: Date, default: Date.now },
             modifiedTime: { type: Date, default: Date.now },
-            deleted: { type: Boolean, default: false }
+            deleted: { type: Boolean, default: false },
+            private: { type: Boolean, default: false }
+            // replyCount: { type: Number, default: 0 },
+            // viewCount: { type: Number, default: 0 }
         });
         return schema;
     }
@@ -40,7 +42,7 @@ export default class Document {
         return { result: true, payload: result, msg: '문서 생성 성공.' };
     }
 
-    // 문서 한개를 검색.
+    // 문서 한개를 조회.
     public async getDocumentOne(docHistoryId: string) {
         let result = await this.model.findOne(
           { historyId: docHistoryId, deleted: false },
@@ -189,44 +191,47 @@ export default class Document {
         }
     }
 
-    public async searchDocuments(lang: string, type: number, subj: string) {
-        const TYPE_SUBJECT = 0;
-        const TYPE_USER_ID = 1;
-        const TYPE_USER_NICKNAME = 2;
-        const TYPE_TAG = 3;
+  public async searchDocuments(lang: string, type: number, subj: string) {
+    const TYPE_SUBJECT = 0;
+    const TYPE_USER_ID = 1;
+    const TYPE_USER_NICKNAME = 2;
+    const TYPE_TAG = 3;
 
-        let condition;
-        if (lang === 'category-all')
-            condition = { deleted: false };
-        else
-            condition = { tagList: lang.toLocaleLowerCase(), deleted: false };
+    let condition;
+    if (lang === 'category-all')
+      condition = { deleted: false, private: false };
+    else
+      condition = {
+          tagList: lang.toLocaleLowerCase(),
+          deleted: false,
+          private: false };
 
-        switch (type) {
-            case TYPE_SUBJECT :
-                condition = Object.assign({}, condition, { title: { $regex: subj } });
-                break;
+    switch (type) {
+      case TYPE_SUBJECT :
+        condition = Object.assign({}, condition, { title: { $regex: subj } });
+        break;
 
-            case TYPE_USER_ID :
-                condition = Object.assign({}, condition, { userId: { $regex: subj } });
-                break;
+      case TYPE_USER_ID :
+        condition = Object.assign({}, condition, { userId: { $regex: subj } });
+        break;
 
-            case TYPE_TAG:
-                condition = Object.assign({}, condition, { tagList: subj });
-                break;
+      case TYPE_TAG:
+        condition = Object.assign({}, condition, { tagList: subj });
+        break;
 
-            case TYPE_USER_NICKNAME :
-                // 일단 미 지원.
-                // 닉네임으로 유저를 검색해서, 해당 유저의 id를 알아내서 id로 검색을 해야 할 듯.
-                break;
+      case TYPE_USER_NICKNAME :
+        // 일단 미 지원.
+        // 닉네임으로 유저를 검색해서, 해당 유저의 id를 알아내서 id로 검색을 해야 할 듯.
+        break;
 
-            default:
-                break;
-        }
-
-        const result = await this.model.find(condition, { deleted: false });
-        if (result.length < 1)
-            return new Result(false, '검색 결과가 없어요.');
-
-        return new Result(true, '검색 완료', 0, result);
+      default:
+        break;
     }
+
+      const result = await this.model.find(condition, { deleted: false });
+      if (result.length < 1)
+          return new Result(false, '검색 결과가 없어요.');
+
+      return new Result(true, '검색 완료', 0, result);
+  }
 }
