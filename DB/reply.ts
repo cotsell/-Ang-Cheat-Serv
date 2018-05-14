@@ -27,6 +27,7 @@ export default class Reply {
 					{
 						historyId: { type: String, default: uuid },
 						parentId: { type: String, required: true },
+						parentUserId: { type: String, required: true },
 						text: { type: String },
 						userId: { type: String, required: true },
 						deleted: { type: Boolean, default: false },

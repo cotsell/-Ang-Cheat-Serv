@@ -1,5 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 import * as conf from './sysConf';
+import { Util } from './DB/Mongo';
 
 export function createJwt(payload: any): string {
     return jwt.sign(
@@ -13,17 +14,28 @@ export function createJwt(payload: any): string {
     );
 }
 
-export function verify(accessToken: string): boolean {
+export function verify(accessToken: string | undefined): boolean {
     let trueOrFalse = false;
-    try {
-        let result = jwt.verify(accessToken, conf.SECRET);
-        // console.log(result);
-        trueOrFalse = true;
-    } catch(expeption) {
-        console.log('Access Token에 문제가 있어요.');
-        trueOrFalse = false;
-    }
+
+    if (accessToken !== undefined) {
+        try {
+            let result = jwt.verify(accessToken, conf.SECRET);
+            // console.log(result);
+            trueOrFalse = true;
+        } catch(expeption) {
+            console.log('Access Token에 문제가 있어요.');
+            trueOrFalse = false;
+        }
+    } 
+    
     return trueOrFalse;
 }
 
-export let decode = jwt.decode;
+export function decode(code: string | undefined) {
+    if (code !== undefined) {
+        return Util.parse(jwt.decode(code));
+    } else {
+        return undefined;
+    }
+} // = jwt.decode;
+

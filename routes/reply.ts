@@ -101,16 +101,20 @@ route.post('/update', (req, res) => {
 
 // 리리플 수정하기.
 route.post('/rereply/update', (req, res) => {
-    const accessToken = req.headers['c-access-token'] + '';
+    const accessToken = req.get('c-access-token');
     const rereply = req.body;
 
-    if (!jwt.verify(accessToken))
+    if (!jwt.verify(accessToken)) {
         res.json(new Result(false, '엑세스 토큰에 문제가 있어요.', conf.ACCESS_TOKEN_ERROR));
+        return;
+    }
 
     const userId = Mongo.Util.parse(jwt.decode(accessToken))['userId'];
 
-    if (rereply.userId !== userId)
+    if (rereply.userId !== userId) {
         res.json(new Result(false, '해당 리플 작성자가 아니에요.'));
+        return;
+    }
 
     console.log(`${userId} 유저로부터 ${rereply._id} 리리플의 수정 요청이 들어왔어요.`);
     console.log(rereply);
