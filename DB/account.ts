@@ -6,92 +6,90 @@ import * as conf from '../sysConf';
 import {Util} from './Mongo';
 
 interface accountDocument extends Document {
-    id?: string;
-    password?: string;
-    nickName?: string;
-    grade?: number;
+  id?: string;
+  password?: string;
+  nickName?: string;
+  grade?: number;
 }
 
 export default class Account {
-    private schema: Schema;
-    private model: Model<Document>;
+  private schema: Schema;
+  private model: Model<Document>;
 
-    constructor() {
-        this.schema = this.setSchema();
-        this.model = mongoose.model<Document>('account', this.schema);
-    }
+  constructor() {
+    this.schema = this.setSchema();
+    this.model = mongoose.model<Document>('account', this.schema);
+  }
 
-    setSchema(): Schema {
-        const schema: Schema =  new Schema({
-            id: { type: String, required: true, unique: true },
-            password: { type: String, required: true },
-            grade: { type: Number, required: true },
-            nickName: { type: String, unique: true },
-            profileImgUrl: { type: String },
-            // myDocumentIdList: { type: [String] },
-            // myScrapIdList: { type: [String] },
-            totalThumbUp: { type: Number },
-            signature: { type: String },
-            createdTime: { type: Date, default: Date.now },
-            updatedTime: { type: Date, default: Date.now }
-        });
+  setSchema(): Schema {
+    const schema: Schema =  new Schema({
+      id: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      grade: { type: Number, required: true },
+      nickName: { type: String, unique: true },
+      profileImgUrl: { type: String, default: '' },
+      totalThumbUp: { type: Number },
+      signature: { type: String },
+      createdTime: { type: Date, default: Date.now },
+      updatedTime: { type: Date, default: Date.now }
+    });
 
-        return schema;
-    }
+    return schema;
+  }
 
-    public getSchema(): Schema {
-        return this.schema;
-    }
+  public getSchema(): Schema {
+    return this.schema;
+  }
 
-    public getModel(): Model<Document> {
-        return this.model;
-    }
+  public getModel(): Model<Document> {
+    return this.model;
+  }
 
-    // DB에 해당 유저가 존재하는지 찾아보고, 없으면 삽입해요.
-    public async insertNewUser(user: UserInfo): Promise<Result> {
+  // DB에 해당 유저가 존재하는지 찾아보고, 없으면 삽입해요.
+  public async insertNewUser(user: UserInfo): Promise<Result> {
 
-        // ID와 Password에 이상이 있을 때의 필터링.
-        if (user.id === undefined || user.id === null || user.id === '' ||
-            user.password === undefined || user.password === null || user.password === ''
-        ) {
-            return new Result(false, 'ID혹은 패스워드가 비었거나, 문제가 있어요.');
-        }
+      // ID와 Password에 이상이 있을 때의 필터링.
+      if (user.id === undefined || user.id === null || user.id === '' ||
+          user.password === undefined || user.password === null || user.password === ''
+      ) {
+          return new Result(false, 'ID혹은 패스워드가 비었거나, 문제가 있어요.');
+      }
 
-        // 결과가 없으면 0, 있으면 1.
-        let result: any = await this.model.count({ id: user.id });
+      // 결과가 없으면 0, 있으면 1.
+      let result: any = await this.model.count({ id: user.id });
 
-        if (result >= 1) {
+      if (result >= 1) {
 
-            console.log('이미 있는 사용자에요.\n');
-            return new Result(false, '이미 있는 사용자.');
+          console.log('이미 있는 사용자에요.\n');
+          return new Result(false, '이미 있는 사용자.');
 
-        } else {
+      } else {
 
-            const userPassword = user.password || '';
-            const encryptedPassword = crypto.createHmac('sha1', conf.SECRET)
-                .update(userPassword)
-                .digest('base64');
+          const userPassword = user.password || '';
+          const encryptedPassword = crypto.createHmac('sha1', conf.SECRET)
+              .update(userPassword)
+              .digest('base64');
 
-            let doc: Document = new this.model({
-                id: user.id,
-                password: encryptedPassword,
-                grade: 9,
-                nickName: user.nickName,
-                profileImgUrl: '',
-                // myScrapIdList: [],
-                totalThumbUp: 0,
-                signature: '',
-            });
+          let doc: Document = new this.model({
+              id: user.id,
+              password: encryptedPassword,
+              grade: 9,
+              nickName: user.nickName,
+              profileImgUrl: '',
+              // myScrapIdList: [],
+              totalThumbUp: 0,
+              signature: '',
+          });
 
-            result = await doc.save().catch(err => { return null; });
-            
-            if (result === null) {
-                return new Result(false, 'ID혹은 닉네임이 중복되었어요.');
-            } else {
-                return new Result(true, '가입 성공', 0, result);
-            }
-        }
-    }
+          result = await doc.save().catch(err => { return null; });
+          
+          if (result === null) {
+              return new Result(false, 'ID혹은 닉네임이 중복되었어요.');
+          } else {
+              return new Result(true, '가입 성공', 0, result);
+          }
+      }
+  }
 
     // 해당 조건의 사용자를 찾아서 있으면 1 없으면 0을 리턴해요.
     public async checkIdAndPassword(user: UserInfo): Promise<number> {
@@ -150,7 +148,10 @@ export default class Account {
     }
 
     public async updateUserInfo(userId: string, userInfo: UserInfo){
-        const updateResult = await this.model.updateOne({ id: userId }, { $set: userInfo }).catch(err => { 
+        const updateResult = await this.model.updateOne(
+            { id: userId }, 
+            { $set: userInfo })
+        .catch(err => { 
             console.error(err);
             return null;
             }
@@ -161,5 +162,23 @@ export default class Account {
         
         return new Result(false, '변경 실패.');
 
+    }
+
+    // 유저 이미지를 변경해요.
+    public async updateUserImgUrl(userId: string, imgPath: string) {
+      const result: any = await this.model.findOneAndUpdate(
+        { id: userId },
+        { $set: { profileImgUrl: imgPath, updatedTime: Date.now() } },
+        { new: false })
+      .catch(err => { console.error(err); return null; });
+
+      if (result === null)
+        return new Result(false, '변경 하는 도중에 문제가 발생했어요.');
+      
+      console.log(result);
+      const oldUrl = result.profileImgUrl;
+
+      return new Result(true, '변경 완료.', 0, 
+        { oldUrl: oldUrl, newUrl: imgPath });
     }
 }

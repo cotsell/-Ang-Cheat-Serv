@@ -6,8 +6,6 @@ export class UserInfo {
     grade?: number;
     nickName?: string;
     profileImgUrl?: string;
-    // myDocumentIdList?: string[];
-    // myScrapIdList?: string[];
     totalThumbUp?: number;
     signature?: string;
     createdTime?: Date;

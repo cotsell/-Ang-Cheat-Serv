@@ -2,16 +2,33 @@ import * as express from 'express';
 import * as Mongo from '../DB/Mongo';
 import * as jwt from '../jwt';
 import { Result, UserInfo } from '../interface';
+import * as Multer from 'multer';
 
 export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
 
+// -----------------------------------------------------------
+// ---- Multer 관련
+
+const storage = Multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, 'userProfileImgs');
+	},
+	filename: (req, file, cb) => {
+        cb(null, file.originalname + '-' + Date.now());
+	}
+});
+const multer = Multer({ storage: storage });
+
+// ---- Multer 관련 끝
+// -----------------------------------------------------------
+
 // AccessToken으로 로그인 처리.
 route.get('/check', (req, res) => {
-    const accessToken = req.headers['c-access-token'];
+    const accessToken = req.get('c-access-token');
     
     // string형태만 받을 수 있어서, 강제로 빈 공백을 더해줘서 string으로 캐스팅 했어요.
-    let result = jwt.verify(accessToken+'');
+    let result = jwt.verify(accessToken);
     res.json(new Result(result));
 });
 
@@ -136,13 +153,13 @@ route.post('/user/checkPassword', (req, res) => {
 
 // 회원 정보 변경해줘요.
 route.post('/user/update', (req, res) => {
-    const accessToken = req.headers['c-access-token'] + '';
+    const accessToken = req.get('c-access-token');
     const userInfo: UserInfo = req.body;
 
     if (!jwt.verify(accessToken))
         return new Result(false, '엑세스토큰에 이상이 있어요.', ACCESS_TOKEN_ERROR);
 
-    const userId = JSON.parse(JSON.stringify(jwt.decode(accessToken)))['userId'];
+    const userId = jwt.decode(accessToken)['userId'];
     
     if (hasNickNameError(userInfo.nickName)) 
         return new Result(false, '닉네임 유형이 잘못되었어요.');
@@ -162,4 +179,28 @@ route.post('/user/update', (req, res) => {
         else
             return false;
     }
+});
+
+route.post('/user/changeUserImg', multer.single('userimg'), (req, res) => {
+  const accessToken = req.get('c-access-token');
+
+  if (!jwt.verify(accessToken)) {
+    res.json(new Result(false, '엑세스토큰에 이상이 있어요.', ACCESS_TOKEN_ERROR));
+    return;
+  }
+
+  const userId = jwt.decode(accessToken)['userId'];
+  const imgUrl = req.file.path;
+
+  Mongo.getAccount().updateUserImgUrl(userId, imgUrl)
+  .then(result => {
+    if (result.result) {
+      if (result.payload.oldUrl !== '') {
+        // TODO 기존 이미지 삭제.
+
+      }
+      result.payload = imgUrl;
+    }
+    res.json(result);
+  });
 });
