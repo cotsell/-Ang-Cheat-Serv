@@ -181,7 +181,7 @@ export default class Account {
     console.log(result);
     const oldUrl = result.profileImgUrl;
 
-    return new Result(true, '변경 완료.', 0, 
+    return new Result(true, '유저 이미지 변경 완료.', 0, 
       { oldUrl: oldUrl, newUrl: imgPath });
   }
 }

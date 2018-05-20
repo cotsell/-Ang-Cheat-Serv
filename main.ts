@@ -36,5 +36,5 @@ app.use('/category', categoryRoute);
 app.use('/reply', replyRoute);
 
 const httpServer = app.listen(8010, '', () => {
-    console.log(`port: ${ httpServer.address().port }`);
+  console.log(`port: ${ httpServer.address().port }`);
 });

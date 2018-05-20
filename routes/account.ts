@@ -3,6 +3,7 @@ import * as Mongo from '../DB/Mongo';
 import * as jwt from '../jwt';
 import { Result, UserInfo } from '../interface';
 import * as Multer from 'multer';
+import * as fs from 'fs';
 
 export const route = express.Router();
 const ACCESS_TOKEN_ERROR = 1;
@@ -184,6 +185,11 @@ route.post('/user/update', (req, res) => {
   }
 });
 
+// 프로필 이미지를 변경해줘요.
+// 1. multer가 이미지를 임의(설정된)의 이름으로 저장.
+// 2. 해당 이미지를 userId-Date.now() 이름으로 변경.
+// 3. userInfo의 profileImgUrl에 변경한 이름을 저장.
+// 4. userInfo의 변경 정 정보를 바탕으로 기존 이미지를 삭제.
 route.post('/user/changeUserImg', multer.single('userimg'), (req, res) => {
   const accessToken = req.get('c-access-token');
 
@@ -193,17 +199,41 @@ route.post('/user/changeUserImg', multer.single('userimg'), (req, res) => {
   }
 
   const userId = jwt.decode(accessToken)['userId'];
+  const newUrl = 'userProfileImgs/' + userId + '-' + Date.now();
   const imgUrl = req.file.path;
 
-  Mongo.getAccount().updateUserImgUrl(userId, imgUrl)
-  .then(result => {
-    if (result.result) {
-      if (result.payload.oldUrl !== '') {
-        // TODO 기존 이미지 삭제.
+  fs.rename(imgUrl, newUrl, (err) => {
+    if (err) {
+      console.error(`유저 프로필 이미지 이름 변경 중 문제 발생.`)
+      console.error(err);
+      console.error();
+      unlink(imgUrl);
 
-      }
-      result.payload = imgUrl;
+    } else {
+
+      Mongo.getAccount().updateUserImgUrl(userId, newUrl)
+      .then(result => {
+
+        if (result.result) {
+          unlink(result.payload.oldUrl);
+          result.payload = newUrl;
+        }
+
+        res.json(result);
+      });
     }
-    res.json(result);
   });
+
+  // -----------------------------------------------------------
+  // ---- 정리용도 함수 모음.
+  // -----------------------------------------------------------
+  function unlink(oldUrl: string) {
+    fs.unlink(oldUrl, (err) => {
+      if (err) {
+        console.error(`파일 삭제 시도 중 에러 생겼어요.`);
+        console.error(err);
+        console.error();
+      }
+    });
+  }
 });
