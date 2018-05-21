@@ -282,7 +282,7 @@ export default class Reply {
 	public async updateRereply(userId: string, rereply: IReply) {
 		const result = await this.model.findOne(
 			{ _id: rereply.parentId, deleted: false, userId: userId })
-			.catch(err => { console.error(err); return null; });
+		.catch(err => { console.error(err); return null; });
 
 		if (result === null)
 			return new Result(false, '해당 리플이 존재하지 않거나, 검색 중 문제가 발생했어요.');
@@ -293,6 +293,9 @@ export default class Reply {
 
 		let rereplyList: IReply[] = parsedDoc['rereply'];
 		let temp: IReply = { historyId: '', parentId: '', text: '', userId: ''};
+
+		// 수정할 대상을 찾아서 temp에 넣고, 수정할 대상이 있던 자리에 수정내용을 넣고, 
+		// updated는 true를 채워 넣어요.
 		rereplyList = rereplyList.map(value => {
 			if (value._id === rereply._id) {
 				temp = Object.assign({}, value);
@@ -302,7 +305,10 @@ export default class Reply {
 						updated: true,
 					});
 			}
-			delete value._id;
+
+			// _id와 updtedTime을 삭제하는 이유는, 
+			// 스키마에서 새로운 값을 채워넣게 해주기 위해서에요.
+			delete value._id; 
 			delete value.updatedTime;
 			return value;
 		});
@@ -316,7 +322,7 @@ export default class Reply {
 			{ _id: rereply.parentId, deleted: false, userId: userId },
 			{ $set: { rereply: rereplyList } },
 			{ new: true })
-			.catch(err => { console.error(err); return null; });
+		.catch(err => { console.error(err); return null; });
 
 		if (updatedResult === null)
 			return new Result(false, '리리플을 리플과 합치는 과정에 문제가 발생했어요.');
