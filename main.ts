@@ -13,7 +13,8 @@ import { Result } from './interface';
 
 const app = express();
 mongo.connect(conf.mongoUrl);
-app.use(express.static('public'));
+app.use('/', express.static('client'));
+app.use('/public', express.static('public'));
 app.use('/userProfileImgs', express.static('userProfileImgs')); // __dirname을 쓰면 일단은 안되고 있음.. 이유가 뭘까?
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
