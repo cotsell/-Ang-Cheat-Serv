@@ -108,7 +108,7 @@ export default class Reply {
 
 	// 새로운 리리플 만들기.
 	public async insertRereply(reply: IReply) {
-		const result = await this.model.findOne({ _id: reply.parentId, deleted: false })
+		const result = await this.model.findOne({ historyId: reply.parentId, deleted: false })
 			.catch(err => { console.error(err); return null; });
 		
 		if (result === null)
@@ -118,7 +118,7 @@ export default class Reply {
 		rereplyList.push(reply);
 
 		const updateResult = await this.model.findOneAndUpdate(
-			{ _id: reply.parentId, deleted: false },
+			{ historyId: reply.parentId, deleted: false },
 			{ $set: { rereply: rereplyList } },
 			{ new: true })
 			.catch(err => { console.error(err); return null; });
@@ -177,7 +177,7 @@ export default class Reply {
 	// 리리플 삭제하기.
 	public async removeRereply(userId: string, rereply: IReply) {
 		const result1 = await this.model.findOne(
-			{ _id: rereply.parentId, 
+			{ historyId: rereply.parentId, 
 				deleted: false, 
 				rereply: {$elemMatch:{_id: rereply._id}} })
 			.catch(err => { console.error(err); return null; });
@@ -219,7 +219,7 @@ export default class Reply {
 		// console.log(rereplyList);
 		
 		const updateResult: any = await this.model.findOneAndUpdate(
-			{ _id: rereply.parentId, 
+			{ historyId: rereply.parentId, 
 				deleted: false, 
 				rereply: { $elemMatch: { _id: rereply._id } } }, 
 			{ $set: { rereply: rereplyList } },
@@ -281,7 +281,7 @@ export default class Reply {
 	// 리리플 수정.
 	public async updateRereply(userId: string, rereply: IReply) {
 		const result = await this.model.findOne(
-			{ _id: rereply.parentId, deleted: false, userId: userId })
+			{ historyId: rereply.parentId, deleted: false, userId: userId })
 		.catch(err => { console.error(err); return null; });
 
 		if (result === null)
@@ -319,7 +319,7 @@ export default class Reply {
 		rereplyList.push(temp);
 
 		const updatedResult: any = await this.model.findOneAndUpdate(
-			{ _id: rereply.parentId, deleted: false, userId: userId },
+			{ historyId: rereply.parentId, deleted: false, userId: userId },
 			{ $set: { rereply: rereplyList } },
 			{ new: true })
 		.catch(err => { console.error(err); return null; });
