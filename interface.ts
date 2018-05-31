@@ -86,6 +86,12 @@ export interface Reply {
     rereply?: Reply[];
 }
 
+export interface pageCursor {
+    cursor: number;
+    countPerPage: number;
+    totalCount: number;
+}
+
 export interface Result {
     result: boolean;
     msg?: string;

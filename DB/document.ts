@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import { Schema, Model, Document as MongDocument } from 'mongoose';
-import { DocumentInfo, Result } from '../interface';
+import { DocumentInfo, Result, pageCursor } from '../interface';
 import * as uuid from 'uuid/v1';
 
 export default class Document {
@@ -214,7 +214,7 @@ export default class Document {
     }
   }
 
-  public async searchDocuments(lang: string, type: number, subj: string) {
+  public async searchDocuments(lang: string, type: number, subj: string, cursor: pageCursor) {
     const TYPE_SUBJECT = 0;
     const TYPE_USER_ID = 1;
     const TYPE_USER_NICKNAME = 2;
@@ -267,10 +267,22 @@ export default class Document {
         break;
     }
 
-      const result = await this.model.find(condition, { deleted: false });
-      if (result.length < 1)
-          return new Result(false, '검색 결과가 없어요.');
+    // console.log(condition);
 
-      return new Result(true, '검색 완료', 0, result);
+    const result: any = await this.model.find(
+      condition, 
+      { deleted: false },
+      { skip: (cursor.cursor - 1) * cursor.countPerPage,
+        limit: cursor.countPerPage * 1 })
+    .catch(err => { console.error(err); return null; });
+
+    if (result === null || result.length < 1)
+        return new Result(false, '검색 결과가 없어요.');
+
+    const totalCount = await this.model.count(condition);
+
+    return new Result(true, '검색 완료', 0, 
+      { totalCount: totalCount, list: result });
   }
+  
 }
