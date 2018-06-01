@@ -277,7 +277,7 @@ export default class Document {
     .catch(err => { console.error(err); return null; });
 
     if (result === null || result.length < 1)
-        return new Result(false, '검색 결과가 없어요.');
+      return new Result(false, '검색 결과가 없어요.');
 
     const totalCount = await this.model.count(condition);
 
@@ -285,4 +285,28 @@ export default class Document {
       { totalCount: totalCount, list: result });
   }
   
+  // 유저가 작성한 리스트를 리턴해요.
+  // cursor는 리턴받을 데이터를 기준으로 입력 받아요.
+  async searchUserDocuments(docuUserId: string, privateMode: boolean, cursor: pageCursor) {
+    // TODO 미작성. 작성해야 함.
+    let condition = { userId: docuUserId, deleted: false };
+
+    if (!privateMode) 
+      condition = Object.assign({}, { ...condition, private: false });
+
+    const result: any = await this.model.find(condition, null, 
+      { 
+        skip: (cursor.cursor - 1) * cursor.countPerPage,
+        limit: cursor.countPerPage * 1
+      })
+    .catch(err => { console.error(err); return null; });
+
+    if (result === null || result.length < 1)
+      return new Result(false, '검색 결과가 없어요.');
+
+    const totalCount = await this.model.count(condition);
+
+    return new Result(true, '검색 완료', 0, 
+      { totalCount: totalCount, list: result });
+  }
 }
