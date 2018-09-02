@@ -113,8 +113,9 @@ export default class Category {
     public async getCategory(id: string) {
         console.log('카테고리 가져오기 시작\n');
 
-        let result = await this.model.findOne({ _id: id, deleted: false })
-            .catch(err => -1);
+        // let result = await this.model.findOne({ _id: id, deleted: false })
+        let result = await this.model.findOne({ historyId: id, deleted: false })
+        .catch(err => -1);
 
         if (result === -1 || result === 0 || result === null)
             return { result: false, msg: '해당 카테고리는 존재하지 않거나, 삭제 된 카테고리에요.' };
@@ -122,13 +123,14 @@ export default class Category {
             return { result: true, msg: '가져오기 성공이에요.', payload: result };
     }
 
+    // 1grade 카테고리만 가져오기.
     public async getAllGrade1Categorys() {
         console.log('모든 카테고리 1Grade 가져오기 시작\n');
 
         let msg: string;
         let result = await this.model.find(
             { deleted: false },
-            { _id: true, title: true, tag: true, grade: true });
+            { _id: true, title: true, tag: true, grade: true, historyId: true });
 
         if (result.length === 0)
             return new Result(false, '카테고리가 하나도 없어요..');

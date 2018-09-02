@@ -18,6 +18,8 @@ route.get('/search', (req, res) => {
       totalCount: req.query['total']  
     };
 
+  console.log(`${lang} : ${type} : ${subj}`);
+
   Mongo.getDocument().searchDocuments(lang, type * 1, subj, cursor)
   .then(value => {
     res.json(value);

@@ -67,9 +67,10 @@ route.get('/get', (req, res) => {
 // 해당 id의 카테고리 전체 가져오기
 route.get('/get/:id', (req, res) => {
     let { id } = req.params;
+    const historyId = id;
     console.log(`${id} 라는 카테고리 _id로 카테고리 요청이 들어왔어요.`);
     
-    Mongo.getCategory().getCategory(id)
+    Mongo.getCategory().getCategory(historyId)
         .then(value => { 
             console.log(value);
             res.json(value);

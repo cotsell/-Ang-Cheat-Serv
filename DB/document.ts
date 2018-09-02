@@ -239,7 +239,8 @@ export default class Document {
                 }
               ]
             });
-        } else {
+        } 
+        else {
           condition = Object.assign({},
             condition,
             { $or: [
@@ -255,7 +256,20 @@ export default class Document {
         break;
 
       case TYPE_TAG:
-        condition = Object.assign({}, condition, { tagList: subj });
+        // condition = Object.assign({}, condition, 
+        //   { 
+        //     tagList: { $regex: subj} 
+        //   }
+        // );
+        condition = Object.assign({}, condition, 
+          { 
+            $and: [
+              { tagList: lang.toLocaleLowerCase() },
+              { tagList: { $regex: subj } }
+            ]
+          }
+        );
+
         break;
 
       case TYPE_USER_NICKNAME :
@@ -267,7 +281,8 @@ export default class Document {
         break;
     }
 
-    // console.log(condition);
+    console.log(`TEST`); 
+    console.log(JSON.stringify(condition));
 
     const result: any = await this.model.find(
       condition, 
